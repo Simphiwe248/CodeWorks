@@ -56,15 +56,19 @@ This document maps variables from the original HIVDB DrugResistance_Interpretati
 ## Drug Resistance Score Mapping
 
 ### Drug Score Information
-| Original XML Path | Original Value | New XML Path | New Value |
-|---|---|---|---|
-| `result/drugScore/drugCode` | "ATV/r", "DRV/r" | `report/drugResistance/drugScores/drug/name` | "ATV", "DRV" |
-| `result/drugScore/genericName` | "atazanavir/r" | `report/drugResistance/drugScores/drug/fullName` | "atazanavir/r" |
-| `result/drugScore/type` | "PI", "NRTI", "NNRTI" | `report/drugResistance/drugScores/drugClass/name` | "PI", "NRTI", "NNRTI" |
-| `result/drugScore/score` | 75, -5, 30 | `report/drugResistance/drugScores/score` | 75, -5, 30 |
-| `result/drugScore/resistanceLevel` | 1, 2, 3, 4, 5 | `report/drugResistance/drugScores/level` | 1, 2, 3, 4, 5 |
-| `result/drugScore/resistanceLevelText` | "Susceptible", "High-Level Resistance" | `report/drugResistance/drugScores/text` | "Susceptible", "High-Level Resistance" |
-| `result/drugScore/threeStepResistanceLevel` | "S", "I", "R" | `report/drugResistance/drugScores/SIR` | "S", "I", "R" |
+| Original XML Path | Original Value | New XML Path | New Value | Notes |
+|---|---|---|---|---|
+| `result/drugScore/drugCode` | "ATV/r", "DRV/r" | `report/drugResistance/drugScores/drug/name` | "ATV", "DRV" | Short code |
+| `result/drugScore/genericName` | "atazanavir/r" | `allGenes/drugClasses/drugs/fullName` | "atazanavir/r" | Must cross-reference allGenes |
+| `result/drugScore/type` | "PI", "NRTI", "NNRTI" | `report/drugResistance/drugScores/drugClass/name` | "PI", "NRTI", "NNRTI" | Drug class type |
+| `result/drugScore/score` | 75, -5, 30 | `report/drugResistance/drugScores/score` | 75, -5, 30 | Resistance score |
+| `result/drugScore/resistanceLevel` | 1, 2, 3, 4, 5 | `report/drugResistance/drugScores/level` | 1, 2, 3, 4, 5 | Numerical level |
+| `result/drugScore/resistanceLevelText` | "Susceptible", "High-Level Resistance" | `report/drugResistance/drugScores/text` | "Susceptible", "High-Level Resistance" | Text interpretation |
+| `result/drugScore/threeStepResistanceLevel` | "S", "I", "R" | `report/drugResistance/drugScores/SIR` | "S", "I", "R" | SIR classification |
+
+**Important Note:** The `genericName` (full drug name) is not directly available in `drugScores`. To get it, you must:
+1. Get the drug name from `drugScores/drug/name` (e.g., "ATV")
+2. Cross-reference with `allGenes/drugClasses/drugs` to find the matching `fullName`
 
 ### Partial Score Information
 | Original XML Path | Original Value | New XML Path | New Value |
@@ -146,7 +150,25 @@ This document maps variables from the original HIVDB DrugResistance_Interpretati
 
 4. **Algorithm Versioning**: Moved from direct `algorithmVersion` to nested structure under `currentVersion`.
 
-5. **Drug Information**: Enhanced with `displayAbbr` and more detailed drug class associations.
+5. **Drug Information**: Drug name references are split:
+   - Short name/code: `drugScores/drug/name`
+   - Full name: `allGenes/drugClasses/drugs/fullName` (requires cross-reference)
 
 6. **Report Structure**: Original uses `result` root; new format uses `report` with more comprehensive data organization.
 
+---
+
+## Cross-Referencing Guide
+
+### Finding Full Drug Name from Drug Score
+```
+Given: drugScore with drug/name = "ATV"
+1. Find allGenes where drugClasses contains drug with name="ATV"
+2. Get the fullName from that drug entry
+Result: "atazanavir/r"
+```
+
+### Example Lookup
+- `report/drugResistance/drugScores[0]/drug/name` = "ATV" (or "BIC", "CAB", etc.)
+- Find in `allGenes/drugClasses/drugs` where `name` matches
+- Extract `fullName` from that matching drug element
